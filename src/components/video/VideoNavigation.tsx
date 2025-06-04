@@ -13,6 +13,9 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { WatchedHistory } from './WatchedHistory';
+import { BlacklistDialog } from './BlacklistDialog';
+import { useBlacklist } from '@/hooks/useBlacklist';
+import { useState } from 'react';
 
 interface VideoNavigationProps {
   showWatched: boolean;
@@ -37,6 +40,19 @@ export function VideoNavigation({
   setAutoHideWatched,
   onSelectVideo,
 }: VideoNavigationProps) {
+  const { blacklist, addToBlacklist, removeFromBlacklist } = useBlacklist();
+  const [previousBlacklist, setPreviousBlacklist] = useState(blacklist);
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // ブラックリストに変更があった場合のみ動画リストを更新
+      if (JSON.stringify(previousBlacklist) !== JSON.stringify(blacklist)) {
+        handleRefresh();
+        setPreviousBlacklist(blacklist);
+      }
+    }
+  };
+
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
@@ -69,6 +85,12 @@ export function VideoNavigation({
           <span>更新</span>
         </Button>
         <WatchedHistory onSelectVideo={onSelectVideo} />
+        <BlacklistDialog
+          blacklist={blacklist}
+          onAdd={addToBlacklist}
+          onRemove={removeFromBlacklist}
+          onOpenChange={handleDialogOpenChange}
+        />
       </div>
 
       <div className="flex items-center gap-2">

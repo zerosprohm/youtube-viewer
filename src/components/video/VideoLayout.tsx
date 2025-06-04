@@ -7,6 +7,8 @@ import { VideoNavigation } from './VideoNavigation';
 import { useVideoState } from '@/hooks/useVideoState';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 interface Video {
   id: {
@@ -41,6 +43,7 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
     handleLoadMore,
     handleRefresh,
     isWatched,
+    clearSelectedVideo,
   } = useVideoState(channelId, initialVideos, nextPageToken);
 
   const {
@@ -57,6 +60,11 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
   const handleSelectVideoWithMode = (video: Video) => {
     handleSelectVideo(video);
     handleGridModeChange(false);
+  };
+
+  const handleClearSelectedVideo = () => {
+    clearSelectedVideo();
+    handleGridModeChange(true);
   };
 
   const handleSelectVideoById = (videoId: string) => {
@@ -105,10 +113,20 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
           <>
             <div className="col-span-3">
               <div className="flex-1">
-                <VideoPlayer
-                  videoId={selectedVideo.id.videoId}
-                  onVideoEnd={handleVideoEndWithTitle}
-                />
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 z-10"
+                    onClick={handleClearSelectedVideo}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <VideoPlayer
+                    videoId={selectedVideo.id.videoId}
+                    onVideoEnd={handleVideoEndWithTitle}
+                  />
+                </div>
               </div>
             </div>
             <div className="col-span-1">

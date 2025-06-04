@@ -6,6 +6,7 @@ import { formatDate, dateTimeFormat } from '@/lib/utils';
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useRef, useEffect } from 'react';
+import { useBlacklist } from '@/hooks/useBlacklist';
 import {
   Tooltip,
   TooltipContent,
@@ -52,6 +53,7 @@ export function VideoList({
   isGridMode,
 }: VideoListProps) {
   const { isWatched } = useWatchedVideos();
+  const { isBlacklisted } = useBlacklist();
   const lastVideoElementRef = useInfiniteScroll({ onLoadMore, hasMore, isLoading });
   const selectedVideoRef = useRef<HTMLButtonElement>(null);
 
@@ -67,9 +69,11 @@ export function VideoList({
   };
 
   // 表示する動画をフィルタリング
-  const filteredVideos = showWatched 
-    ? videos 
-    : videos.filter(video => !isWatched(video.id.videoId));
+  const filteredVideos = videos.filter(video => {
+    if (isBlacklisted(video.snippet.title)) return false;
+    if (!showWatched && isWatched(video.id.videoId)) return false;
+    return true;
+  });
 
   return (
     <div className={`overflow-y-auto h-[calc(100vh-8rem)] ${isGridMode ? 'grid grid-cols-5 gap-4 p-2' : ''}`}>

@@ -47,6 +47,10 @@ export function useVideoState(channelId: string, initialVideos: Video[], initial
     }
   };
 
+  const clearSelectedVideo = () => {
+    setSelectedVideo(null);
+  };
+
   const handleLoadMore = async () => {
     if (!nextToken || isLoading) return;
 
@@ -92,5 +96,6 @@ export function useVideoState(channelId: string, initialVideos: Video[], initial
     handleLoadMore,
     handleRefresh,
     isWatched,
+    clearSelectedVideo,
   };
 } 
