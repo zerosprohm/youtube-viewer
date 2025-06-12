@@ -27,6 +27,9 @@ interface Video {
       };
     };
   };
+  contentDetails?: {
+    duration: string;
+  };
 }
 
 interface VideoListProps {
@@ -75,6 +78,23 @@ export function VideoList({
     return true;
   });
 
+  // 動画の長さをフォーマットする関数
+  const formatDuration = (duration: string) => {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    if (!match) return '';
+
+    const hours = (match[1] || '').replace('H', '');
+    const minutes = (match[2] || '').replace('M', '');
+    const seconds = (match[3] || '').replace('S', '');
+
+    let result = '';
+    if (hours) result += `${hours}:`;
+    result += `${minutes.padStart(2, '0')}:`;
+    result += seconds.padStart(2, '0');
+
+    return result;
+  };
+
   return (
     <div className={`overflow-y-auto h-[calc(100vh-8rem)] ${isGridMode ? 'grid grid-cols-5 gap-4 p-2' : ''}`}>
       {isGridMode ? (
@@ -86,11 +106,18 @@ export function VideoList({
               className={`cursor-pointer hover:opacity-80 transition-opacity ${isWatched(video.id.videoId) ? 'opacity-50' : ''}`}
               onClick={() => handleVideoSelect(video)}
             >
-              <img
-                src={video.snippet.thumbnails.medium.url}
-                alt={video.snippet.title}
-                className="w-full aspect-video object-cover rounded-lg"
-              />
+              <div className="relative">
+                <img
+                  src={video.snippet.thumbnails.medium.url}
+                  alt={video.snippet.title}
+                  className="w-full aspect-video object-cover rounded-lg"
+                />
+                {video.contentDetails?.duration && (
+                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">
+                    {formatDuration(video.contentDetails.duration)}
+                  </div>
+                )}
+              </div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -135,6 +162,11 @@ export function VideoList({
                   alt={video.snippet.title}
                   className="object-cover rounded"
                 />
+                {video.contentDetails?.duration && (
+                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">
+                    {formatDuration(video.contentDetails.duration)}
+                  </div>
+                )}
               </div>
               <TooltipProvider>
                 <Tooltip>

@@ -8,19 +8,6 @@ export async function getChannelVideos(channelId: string, pageToken?: string) {
     throw new Error('YouTube APIキーが設定されていません');
   }
 
-  const params = new URLSearchParams({
-    part: 'snippet',
-    channelId,
-    maxResults: '50',
-    order: 'date',
-    type: 'video',
-    key: API_KEY,
-  });
-
-  if (pageToken) {
-    params.append('pageToken', pageToken);
-  }
-
   try {
     // チャンネルIDの形式を確認
     let finalChannelId = channelId;
@@ -76,8 +63,32 @@ export async function getChannelVideos(channelId: string, pageToken?: string) {
     }
 
     const data = await response.json();
+    const videoIds = data.items.map((item: any) => item.id.videoId).join(',');
+
+    // 動画の詳細情報（長さを含む）を取得
+    const videoDetailsResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${API_KEY}`
+    );
+
+    if (!videoDetailsResponse.ok) {
+      const error = await videoDetailsResponse.json();
+      console.error('Video Details API Error Response:', error);
+      throw new Error(error.error?.message || '動画の詳細情報の取得に失敗しました');
+    }
+
+    const videoDetails = await videoDetailsResponse.json();
+    const videoDetailsMap = new Map(
+      videoDetails.items.map((item: any) => [item.id, item.contentDetails])
+    );
+
+    // 動画情報と詳細情報を結合
+    const videos = data.items.map((item: any) => ({
+      ...item,
+      contentDetails: videoDetailsMap.get(item.id.videoId),
+    }));
+
     return {
-      videos: data.items || [],
+      videos,
       nextPageToken: data.nextPageToken,
     };
   } catch (error) {
