@@ -15,6 +15,9 @@ interface Video {
       };
     };
   };
+  contentDetails?: {
+    duration: string;
+  };
 }
 
 export function useVideoState(channelId: string, initialVideos: Video[], initialNextPageToken?: string) {
