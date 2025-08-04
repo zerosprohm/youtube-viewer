@@ -9,24 +9,14 @@ interface Comment {
   author: string;
   publishedAt: string;
   likeCount: number;
-  replies: Comment[];
+  replies?: Comment[];
 }
 
 interface CommentSectionProps {
   videoId: string;
 }
 
-// 日付と時間をフォーマットする関数
-function formatDateTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
+
 
 function CommentItem({ comment }: { comment: Comment }) {
   return (
@@ -39,7 +29,7 @@ function CommentItem({ comment }: { comment: Comment }) {
         </div>
       </div>
       <p className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: comment.text }} />
-      {comment.replies?.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
         <div className="ml-4 mt-2 space-y-2">
           {comment.replies.map((reply) => (
             <div key={reply.id} className="p-2 bg-gray-50 rounded">
@@ -68,32 +58,32 @@ export function CommentSection({ videoId }: CommentSectionProps) {
   const commentsContainerRef = useRef<HTMLDivElement>(null);
 
   const observer = useRef<IntersectionObserver | null>(null);
+
   const lastCommentElementRef = useCallback((node: HTMLDivElement) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
+        const loadMoreComments = async () => {
+          if (!nextPageToken || loading) return;
+          
+          try {
+            setLoading(true);
+            const result = await getVideoComments(videoId, nextPageToken);
+            setComments(prev => [...prev, ...result.comments]);
+            setNextPageToken(result.nextPageToken);
+            setHasMore(!!result.nextPageToken);
+          } catch (e) {
+            setError(e instanceof Error ? e.message : 'コメントの取得に失敗しました');
+          } finally {
+            setLoading(false);
+          }
+        };
         loadMoreComments();
       }
     });
     if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
-
-  const loadMoreComments = async () => {
-    if (!nextPageToken || loading) return;
-    
-    try {
-      setLoading(true);
-      const result = await getVideoComments(videoId, nextPageToken);
-      setComments(prev => [...prev, ...result.comments]);
-      setNextPageToken(result.nextPageToken);
-      setHasMore(!!result.nextPageToken);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'コメントの取得に失敗しました');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [loading, hasMore, nextPageToken, videoId]);
 
   useEffect(() => {
     const fetchComments = async () => {

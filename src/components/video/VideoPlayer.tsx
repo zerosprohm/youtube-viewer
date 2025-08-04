@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import YouTube from 'react-youtube';
 
 interface VideoPlayerProps {
@@ -9,13 +9,13 @@ interface VideoPlayerProps {
 }
 
 export function VideoPlayer({ videoId, onVideoEnd }: VideoPlayerProps) {
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<YouTube | null>(null);
 
-  const onReady = (event: any) => {
+  const onReady = (event: { target: YouTube }) => {
     playerRef.current = event.target;
   };
 
-  const onStateChange = (event: any) => {
+  const onStateChange = (event: { data: number }) => {
     // 動画が最後まで再生された場合（state: 0）
     if (event.data === 0 && onVideoEnd) {
       onVideoEnd();

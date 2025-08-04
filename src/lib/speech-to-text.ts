@@ -19,6 +19,9 @@ const speechClient = new SpeechClient({
   // },
 });
 
+// Google Cloud Speech-to-Text APIの実際の型を使用
+type ISpeechRecognitionResult = import('@google-cloud/speech').protos.google.cloud.speech.v1.ISpeechRecognitionResult;
+
 // 認証情報のチェック
 function checkGoogleCloudCredentials() {
   console.log('Google Cloud認証情報チェック:');
@@ -67,7 +70,7 @@ async function splitAudioWithFFmpeg(inputFilePath: string, segmentDuration: numb
   const ffmpegCommand = `ffmpeg -i "${inputFilePath}" -c copy -map 0 -segment_time ${segmentDuration} -f segment -reset_timestamps 1 "${outputPattern}"`;
   
   try {
-    const { stdout, stderr } = await execAsync(ffmpegCommand);
+    const { stderr } = await execAsync(ffmpegCommand);
     console.log('ffmpeg実行完了');
     if (stderr) {
       console.log('ffmpeg stderr:', stderr);
@@ -134,7 +137,7 @@ async function transcribeSegment(audioBuffer: Buffer, languageCode: string, segm
     }
 
     const transcription = results
-      .map((result: any) => result.alternatives?.[0]?.transcript)
+      .map((result: ISpeechRecognitionResult) => result.alternatives?.[0]?.transcript)
       .filter(Boolean)
       .join(' ');
 
@@ -172,7 +175,7 @@ async function transcribeSegment(audioBuffer: Buffer, languageCode: string, segm
         }
         
         const transcription = results
-          .map((result: any) => result.alternatives?.[0]?.transcript)
+          .map((result: ISpeechRecognitionResult) => result.alternatives?.[0]?.transcript)
           .filter(Boolean)
           .join(' ');
         

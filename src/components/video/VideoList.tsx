@@ -1,7 +1,5 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { formatDate, dateTimeFormat } from '@/lib/utils';
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -14,24 +12,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-interface Video {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    publishedAt: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-  };
-  contentDetails?: {
-    duration: string;
-  };
-}
+import Image from 'next/image';
+import { Video } from '@/types/youtube';
 
 interface VideoListProps {
   videos: Video[];
@@ -107,10 +89,12 @@ export function VideoList({
               className={`cursor-pointer hover:opacity-80 transition-opacity ${isWatched(video.id.videoId) ? 'opacity-50' : ''}`}
             >
               <div className="relative">
-                <img
+                <Image
                   src={video.snippet.thumbnails.medium.url}
                   alt={video.snippet.title}
-                  className="w-full aspect-video object-cover rounded-lg"
+                  width={320}
+                  height={180}
+                  className="w-full aspect-video object-cover rounded-lg cursor-pointer"
                   onClick={() => handleVideoSelect(video)}
                 />
                 {video.contentDetails?.duration && (
@@ -152,7 +136,7 @@ export function VideoList({
         </>
       ) : (
         <div className="flex-1 overflow-y-auto space-y-2">
-          {filteredVideos.map((video, index) => (
+          {filteredVideos.map((video) => (
             <div
               key={video.id.videoId}
               className={`w-full text-left p-2 rounded-lg transition-colors ${
@@ -162,9 +146,11 @@ export function VideoList({
               } ${isWatched(video.id.videoId) ? 'opacity-50' : ''}`}
             >
               <div className="relative aspect-video mb-2">
-                <img
+                <Image
                   src={video.snippet.thumbnails.medium.url}
                   alt={video.snippet.title}
+                  width={320}
+                  height={180}
                   className="object-cover rounded cursor-pointer"
                   onClick={() => handleVideoSelect(video)}
                 />

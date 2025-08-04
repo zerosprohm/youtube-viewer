@@ -2,19 +2,8 @@
 
 import { use } from 'react';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../ui/breadcrumb';
-
-interface ChannelInfo {
-  title: string;
-  description: string;
-  thumbnails: {
-    default: { url: string };
-    medium: { url: string };
-    high: { url: string };
-  };
-}
+import { ChannelInfo } from '@/types/youtube';
 
 interface ChannelHeaderProps {
   channelInfoPromise: Promise<ChannelInfo>;

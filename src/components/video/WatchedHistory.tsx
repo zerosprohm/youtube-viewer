@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import Image from 'next/image';
 
 interface WatchedHistoryProps {
   onSelectVideo: (videoId: string) => void;
@@ -67,9 +68,11 @@ export function WatchedHistory({ onSelectVideo }: WatchedHistoryProps) {
                     className="flex items-center justify-between p-2 hover:bg-accent rounded-lg"
                   >
                     <div className="flex items-center gap-2">
-                      <img
+                      <Image
                         src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
                         alt="thumbnail"
+                        width={96}
+                        height={54}
                         className="w-24 h-auto rounded"
                       />
                       <div>

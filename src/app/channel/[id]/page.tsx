@@ -1,31 +1,12 @@
 import { getChannelVideos, getChannelInfo } from '@/lib/youtube';
 import { VideoLayout } from '@/components/video/VideoLayout';
 import { ChannelHeader } from '@/components/video/ChannelHeader';
-
-interface Video {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    publishedAt: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-  };
-}
-
-interface VideoResponse {
-  videos: Video[];
-  nextPageToken?: string;
-}
+import { VideoResponse } from '@/types/youtube';
 
 export default async function ChannelPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   let videoResponse: VideoResponse = { videos: [] };
   let error = null;

@@ -10,6 +10,107 @@ const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
 
+// YouTube API レスポンス型定義
+interface YouTubeVideoContentDetails {
+  duration: string;
+  dimension: string;
+  definition: string;
+  caption: string;
+  licensedContent: boolean;
+  contentRating: Record<string, unknown>;
+  projection: string;
+}
+
+interface YouTubeVideoItem {
+  id: string;
+  contentDetails: YouTubeVideoContentDetails;
+}
+
+interface YouTubeVideoDetailsResponse {
+  items: YouTubeVideoItem[];
+}
+
+interface YouTubeSearchItem {
+  id: { videoId: string };
+  snippet: {
+    title: string;
+    description: string;
+    thumbnails: {
+      default: { url: string; width: number; height: number };
+      medium: { url: string; width: number; height: number };
+      high: { url: string; width: number; height: number };
+    };
+    channelTitle: string;
+    publishedAt: string;
+  };
+}
+
+interface YouTubeSearchResponse {
+  items: YouTubeSearchItem[];
+  nextPageToken?: string;
+}
+
+interface YouTubeCommentSnippet {
+  textDisplay: string;
+  authorDisplayName: string;
+  publishedAt: string;
+  likeCount: number;
+}
+
+interface YouTubeComment {
+  id: string;
+  snippet: YouTubeCommentSnippet;
+}
+
+interface YouTubeCommentThread {
+  id: string;
+  snippet: {
+    topLevelComment: YouTubeComment;
+    replies?: {
+      comments: YouTubeComment[];
+    };
+  };
+}
+
+interface YouTubeCommentResponse {
+  items: YouTubeCommentThread[];
+  nextPageToken?: string;
+}
+
+interface YouTubeChannelSnippet {
+  title: string;
+  description: string;
+  thumbnails: {
+    default: { url: string; width: number; height: number };
+    medium: { url: string; width: number; height: number };
+    high: { url: string; width: number; height: number };
+  };
+}
+
+interface YouTubeChannelItem {
+  id: string;
+  snippet: YouTubeChannelSnippet;
+}
+
+interface YouTubeChannelResponse {
+  items: YouTubeChannelItem[];
+}
+
+interface YouTubeCaptionSnippet {
+  language: string;
+  name: string;
+  trackKind: string;
+}
+
+interface YouTubeCaption {
+  id: string;
+  snippet: YouTubeCaptionSnippet;
+}
+
+interface YouTubeCaptionResponse {
+  items: YouTubeCaption[];
+}
+
 export async function getChannelVideos(channelId: string, pageToken?: string) {
   console.log('channelId', channelId);
   if (!API_KEY) {
@@ -36,7 +137,7 @@ export async function getChannelVideos(channelId: string, pageToken?: string) {
         throw new Error('チャンネル情報の取得に失敗しました');
       }
 
-      const channelData = await channelResponse.json();
+      const channelData: YouTubeChannelResponse = await channelResponse.json();
       if (!channelData.items?.[0]?.id) {
         throw new Error('チャンネルが見つかりませんでした');
       }
@@ -70,8 +171,8 @@ export async function getChannelVideos(channelId: string, pageToken?: string) {
       throw new Error(error.error?.message || '動画の取得に失敗しました');
     }
 
-    const data = await response.json();
-    const videoIds = data.items.map((item: any) => item.id.videoId).join(',');
+    const data: YouTubeSearchResponse = await response.json();
+    const videoIds = data.items.map((item) => item.id.videoId).join(',');
 
     // 動画の詳細情報（長さを含む）を取得
     const videoDetailsResponse = await fetch(
@@ -84,13 +185,13 @@ export async function getChannelVideos(channelId: string, pageToken?: string) {
       throw new Error(error.error?.message || '動画の詳細情報の取得に失敗しました');
     }
 
-    const videoDetails = await videoDetailsResponse.json();
+    const videoDetails: YouTubeVideoDetailsResponse = await videoDetailsResponse.json();
     const videoDetailsMap = new Map(
-      videoDetails.items.map((item: any) => [item.id, item.contentDetails])
+      videoDetails.items.map((item) => [item.id, item.contentDetails])
     );
 
     // 動画情報と詳細情報を結合
-    const videos = data.items.map((item: any) => ({
+    const videos = data.items.map((item) => ({
       ...item,
       contentDetails: videoDetailsMap.get(item.id.videoId),
     }));
@@ -134,16 +235,16 @@ export async function getVideoComments(videoId: string, pageToken?: string) {
       throw new Error(error.error?.message || 'コメントの取得に失敗しました');
     }
 
-    const data = await response.json();
+    const data: YouTubeCommentResponse = await response.json();
     console.log('data nextPageToken', data.nextPageToken);
     return {
-      comments: data.items.map((item: any) => ({
+      comments: data.items.map((item) => ({
         id: item.id,
         text: item.snippet.topLevelComment.snippet.textDisplay,
         author: item.snippet.topLevelComment.snippet.authorDisplayName,
         publishedAt: item.snippet.topLevelComment.snippet.publishedAt,
         likeCount: item.snippet.topLevelComment.snippet.likeCount,
-        replies: item.replies?.comments?.map((reply: any) => ({
+        replies: item.snippet.replies?.comments?.map((reply) => ({
           id: reply.id,
           text: reply.snippet.textDisplay,
           author: reply.snippet.authorDisplayName,
@@ -181,7 +282,7 @@ export async function getChannelInfo(channelId: string) {
         throw new Error('チャンネル情報の取得に失敗しました');
       }
 
-      const channelData = await channelResponse.json();
+      const channelData: YouTubeChannelResponse = await channelResponse.json();
       if (!channelData.items?.[0]) {
         throw new Error('チャンネルが見つかりませんでした');
       }
@@ -210,7 +311,7 @@ export async function getChannelInfo(channelId: string) {
       throw new Error(error.error?.message || 'チャンネル情報の取得に失敗しました');
     }
 
-    const data = await response.json();
+    const data: YouTubeChannelResponse = await response.json();
     if (!data.items?.[0]) {
       throw new Error('チャンネルが見つかりませんでした');
     }
@@ -249,7 +350,7 @@ export async function getVideoCaptions(videoId: string) {
       throw new Error(error.error?.message || '字幕の取得に失敗しました');
     }
 
-    const data = await response.json();
+    const data: YouTubeCaptionResponse = await response.json();
     
     if (!data.items || data.items.length === 0) {
       return null; // 字幕が存在しない

@@ -1,24 +1,7 @@
 import { useState } from 'react';
 import { getChannelVideos } from '@/lib/youtube';
 import { useWatchedVideos } from './useWatchedVideos';
-
-interface Video {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    publishedAt: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-  };
-  contentDetails?: {
-    duration: string;
-  };
-}
+import { Video } from '@/types/youtube';
 
 export function useVideoState(channelId: string, initialVideos: Video[], initialNextPageToken?: string) {
   const [videos, setVideos] = useState<Video[]>(initialVideos);

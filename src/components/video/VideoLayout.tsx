@@ -10,24 +10,7 @@ import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-
-interface Video {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    publishedAt: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-  };
-  contentDetails?: {
-    duration: string;
-  };
-}
+import { Video } from '@/types/youtube';
 
 interface VideoLayoutProps {
   channelId: string;
@@ -46,7 +29,6 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
     handleVideoEnd,
     handleLoadMore,
     handleRefresh,
-    isWatched,
     clearSelectedVideo,
   } = useVideoState(channelId, initialVideos, nextPageToken);
 
