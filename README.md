@@ -174,6 +174,148 @@ pnpm dev
 5. **動画再生時に「要約を生成」ボタンをクリックして動画の要約を表示**
 6. **要約結果は自動的にローカルストレージに保存され、1週間以内は再生成不要**
 
+## PM2でのプロセス管理
+
+このプロジェクトでは、PM2を使用してアプリケーションのプロセス管理を行っています。開発環境と本番環境を分離して管理できます。
+
+### 前提条件
+
+PM2がインストールされていない場合は、以下のコマンドでインストールしてください：
+
+```bash
+npm install -g pm2
+```
+
+### 環境設定
+
+プロジェクトには以下の2つの環境が設定されています：
+
+- **本番環境（ポート3000）**: ビルド済みのアプリケーション
+- **開発環境（ポート3001）**: ホットリロード付きの開発サーバー
+
+### 基本的な使用方法
+
+#### 1. 全環境の起動
+```bash
+# 本番環境と開発環境の両方を起動
+pm2 start ecosystem.config.js
+```
+
+#### 2. 個別環境の起動
+```bash
+# 本番環境のみ起動
+pm2 start ecosystem.config.js --only youtube-viewer
+
+# 開発環境のみ起動
+pm2 start ecosystem.config.js --only youtube-viewer-dev
+```
+
+#### 3. プロセス状態の確認
+```bash
+# 実行中のプロセス一覧を表示
+pm2 list
+
+# リアルタイムモニタリング
+pm2 monit
+
+# ログの確認
+pm2 logs
+```
+
+### プロセス管理コマンド
+
+#### 本番環境（youtube-viewer）
+```bash
+# 再起動
+pm2 restart youtube-viewer
+
+# 停止
+pm2 stop youtube-viewer
+
+# 削除
+pm2 delete youtube-viewer
+
+# ログ確認
+pm2 logs youtube-viewer
+```
+
+#### 開発環境（youtube-viewer-dev）
+```bash
+# 再起動
+pm2 restart youtube-viewer-dev
+
+# 停止
+pm2 stop youtube-viewer-dev
+
+# 削除
+pm2 delete youtube-viewer-dev
+
+# ログ確認
+pm2 logs youtube-viewer-dev
+```
+
+### 全体管理コマンド
+
+```bash
+# 全プロセスの再起動
+pm2 restart ecosystem.config.js
+
+# 全プロセスの停止
+pm2 stop ecosystem.config.js
+
+# 全プロセスの削除
+pm2 delete ecosystem.config.js
+
+# 全プロセスのログ確認
+pm2 logs
+```
+
+### 自動起動の設定
+
+システム起動時にPM2プロセスを自動起動するには：
+
+```bash
+# PM2の自動起動を有効化
+pm2 startup
+
+# 現在のプロセス設定を保存
+pm2 save
+```
+
+### 開発時の使い分け
+
+- **開発時**: `http://localhost:3001` でホットリロード付きの開発環境
+- **本番確認時**: `http://localhost:3000` でビルド済みの本番環境
+
+### トラブルシューティング
+
+#### プロセスが起動しない場合
+1. ビルドが必要な場合：
+```bash
+pnpm build
+pm2 restart youtube-viewer
+```
+
+2. ログを確認：
+```bash
+pm2 logs youtube-viewer
+```
+
+#### ポートが使用中の場合
+- 既存のプロセスを停止してから再起動
+- ポート設定を確認（ecosystem.config.js）
+
+### 設定ファイル（ecosystem.config.js）
+
+プロジェクトルートの`ecosystem.config.js`ファイルで以下の設定が可能です：
+
+- プロセス名とスクリプト
+- インスタンス数
+- メモリ制限
+- 環境変数
+- 自動再起動設定
+- ファイル監視設定
+
 ## 注意事項
 
 - YouTube Data API v3には1日のクォータ制限があります
