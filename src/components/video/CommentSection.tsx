@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { getVideoComments } from '@/lib/youtube';
 
 interface Comment {
   id: string;
@@ -16,6 +15,22 @@ interface CommentSectionProps {
   videoId: string;
 }
 
+// API Routeを使用してコメントを取得する関数
+async function getVideoComments(videoId: string, pageToken?: string) {
+  const params = new URLSearchParams({ videoId });
+  if (pageToken) {
+    params.append('pageToken', pageToken);
+  }
+
+  const response = await fetch(`/api/comments?${params.toString()}`);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'コメントの取得に失敗しました');
+  }
+
+  return response.json();
+}
 
 
 function CommentItem({ comment }: { comment: Comment }) {
