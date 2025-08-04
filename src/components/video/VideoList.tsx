@@ -41,11 +41,11 @@ export function VideoList({
   const { isWatched } = useWatchedVideos();
   const { isBlacklisted } = useBlacklist();
   const lastVideoElementRef = useInfiniteScroll({ onLoadMore, hasMore, isLoading });
-  const selectedVideoRef = useRef<HTMLButtonElement>(null);
+  const selectedVideoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedVideoId && selectedVideoRef.current && !isGridMode) {
-      selectedVideoRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      selectedVideoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [selectedVideoId, isGridMode]);
 
@@ -139,6 +139,7 @@ export function VideoList({
           {filteredVideos.map((video) => (
             <div
               key={video.id.videoId}
+              ref={video.id.videoId === selectedVideoId ? selectedVideoRef : undefined}
               className={`w-full text-left p-2 rounded-lg transition-colors ${
                 video.id.videoId === selectedVideoId
                   ? 'bg-primary text-primary-foreground'
