@@ -4,26 +4,13 @@ import { VideoList } from './VideoList';
 import { VideoPlayer } from './VideoPlayer';
 import { CommentSection } from './CommentSection';
 import { VideoNavigation } from './VideoNavigation';
+import { VideoSummary } from './VideoSummary';
 import { useVideoState } from '@/hooks/useVideoState';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-
-interface Video {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    publishedAt: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-  };
-}
+import { Video } from '@/types/youtube';
 
 interface VideoLayoutProps {
   channelId: string;
@@ -42,7 +29,6 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
     handleVideoEnd,
     handleLoadMore,
     handleRefresh,
-    isWatched,
     clearSelectedVideo,
   } = useVideoState(channelId, initialVideos, nextPageToken);
 
@@ -56,6 +42,23 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
   } = useDisplayMode();
 
   const { addWatchedVideo } = useWatchedVideos();
+
+  // 動画の長さをフォーマットする関数
+  const formatDuration = (duration: string) => {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    if (!match) return '';
+
+    const hours = (match[1] || '').replace('H', '');
+    const minutes = (match[2] || '').replace('M', '');
+    const seconds = (match[3] || '').replace('S', '');
+
+    let result = '';
+    if (hours) result += `${hours}:`;
+    result += `${minutes.padStart(2, '0')}:`;
+    result += seconds.padStart(2, '0');
+
+    return result;
+  };
 
   const handleSelectVideoWithMode = (video: Video) => {
     handleSelectVideo(video);
@@ -114,14 +117,21 @@ export function VideoLayout({ channelId, initialVideos, nextPageToken }: VideoLa
             <div className="col-span-3">
               <div className="flex-1">
                 <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2 z-10"
-                    onClick={handleClearSelectedVideo}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="absolute top-2 right-2 z-10 flex gap-2">
+                    <VideoSummary 
+                      videoId={selectedVideo.id.videoId}
+                      videoTitle={selectedVideo.snippet.title}
+                      compact={false}
+                      videoDuration={selectedVideo.contentDetails?.duration ? formatDuration(selectedVideo.contentDetails.duration) : undefined}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearSelectedVideo}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <VideoPlayer
                     videoId={selectedVideo.id.videoId}
                     onVideoEnd={handleVideoEndWithTitle}

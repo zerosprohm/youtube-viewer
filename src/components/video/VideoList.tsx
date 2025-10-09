@@ -1,36 +1,19 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { formatDate, dateTimeFormat } from '@/lib/utils';
 import { useWatchedVideos } from '@/hooks/useWatchedVideos';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { useRef, useEffect } from 'react';
 import { useBlacklist } from '@/hooks/useBlacklist';
+import { VideoSummary } from './VideoSummary';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-interface Video {
-  id: {
-    videoId: string;
-  };
-  snippet: {
-    title: string;
-    publishedAt: string;
-    thumbnails: {
-      medium: {
-        url: string;
-      };
-    };
-  };
-  contentDetails?: {
-    duration: string;
-  };
-}
+import Image from 'next/image';
+import { Video } from '@/types/youtube';
 
 interface VideoListProps {
   videos: Video[];
@@ -58,11 +41,11 @@ export function VideoList({
   const { isWatched } = useWatchedVideos();
   const { isBlacklisted } = useBlacklist();
   const lastVideoElementRef = useInfiniteScroll({ onLoadMore, hasMore, isLoading });
-  const selectedVideoRef = useRef<HTMLButtonElement>(null);
+  const selectedVideoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedVideoId && selectedVideoRef.current && !isGridMode) {
-      selectedVideoRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      selectedVideoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [selectedVideoId, isGridMode]);
 
@@ -104,24 +87,36 @@ export function VideoList({
               key={video.id.videoId}
               ref={index === filteredVideos.length - 1 ? lastVideoElementRef : undefined}
               className={`cursor-pointer hover:opacity-80 transition-opacity ${isWatched(video.id.videoId) ? 'opacity-50' : ''}`}
-              onClick={() => handleVideoSelect(video)}
             >
               <div className="relative">
-                <img
+                <Image
                   src={video.snippet.thumbnails.medium.url}
                   alt={video.snippet.title}
-                  className="w-full aspect-video object-cover rounded-lg"
+                  width={320}
+                  height={180}
+                  className="w-full aspect-video object-cover rounded-lg cursor-pointer"
+                  onClick={() => handleVideoSelect(video)}
                 />
                 {video.contentDetails?.duration && (
                   <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">
                     {formatDuration(video.contentDetails.duration)}
                   </div>
                 )}
+                <div className="absolute top-2 right-2">
+                  <VideoSummary 
+                    videoId={video.id.videoId}
+                    videoTitle={video.snippet.title}
+                    compact={true}
+                    videoDuration={video.contentDetails?.duration ? formatDuration(video.contentDetails.duration) : undefined}
+                  />
+                </div>
               </div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <h3 className="text-sm mt-2 line-clamp-2">{video.snippet.title}</h3>
+                    <h3 className="text-sm mt-2 line-clamp-2 cursor-pointer" onClick={() => handleVideoSelect(video)}>
+                      {video.snippet.title}
+                    </h3>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">{video.snippet.title}</p>
@@ -141,15 +136,10 @@ export function VideoList({
         </>
       ) : (
         <div className="flex-1 overflow-y-auto space-y-2">
-          {filteredVideos.map((video, index) => (
-            <button
+          {filteredVideos.map((video) => (
+            <div
               key={video.id.videoId}
-              onClick={() => handleVideoSelect(video)}
-              ref={index === filteredVideos.length - 1 
-                ? lastVideoElementRef 
-                : video.id.videoId === selectedVideoId 
-                  ? selectedVideoRef 
-                  : undefined}
+              ref={video.id.videoId === selectedVideoId ? selectedVideoRef : undefined}
               className={`w-full text-left p-2 rounded-lg transition-colors ${
                 video.id.videoId === selectedVideoId
                   ? 'bg-primary text-primary-foreground'
@@ -157,31 +147,48 @@ export function VideoList({
               } ${isWatched(video.id.videoId) ? 'opacity-50' : ''}`}
             >
               <div className="relative aspect-video mb-2">
-                <img
+                <Image
                   src={video.snippet.thumbnails.medium.url}
                   alt={video.snippet.title}
-                  className="object-cover rounded"
+                  width={320}
+                  height={180}
+                  className="object-cover rounded cursor-pointer"
+                  onClick={() => handleVideoSelect(video)}
                 />
                 {video.contentDetails?.duration && (
                   <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">
                     {formatDuration(video.contentDetails.duration)}
                   </div>
                 )}
+                <div className="absolute top-2 right-2">
+                  <VideoSummary 
+                    videoId={video.id.videoId}
+                    videoTitle={video.snippet.title}
+                    compact={true}
+                    videoDuration={video.contentDetails?.duration ? formatDuration(video.contentDetails.duration) : undefined}
+                  />
+                </div>
               </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <h3 className="font-medium line-clamp-2">{video.snippet.title}</h3>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">{video.snippet.title}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <p className="text-sm text-muted-foreground">
-                {formatDate(video.snippet.publishedAt, dateTimeFormat)}
-              </p>
-            </button>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <h3 className="font-medium line-clamp-2 cursor-pointer" onClick={() => handleVideoSelect(video)}>
+                          {video.snippet.title}
+                        </h3>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{video.snippet.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(video.snippet.publishedAt, dateTimeFormat)}
+                  </p>
+                </div>
+              </div>
+            </div>
           ))}
 
           {isLoading && (

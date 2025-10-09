@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 
 interface WatchedVideo {

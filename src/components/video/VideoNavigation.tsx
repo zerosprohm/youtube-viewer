@@ -59,7 +59,10 @@ export function VideoNavigation({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowWatched(!showWatched)}
+          onClick={() => {
+            console.log('VideoNavigation Debug: showWatched toggle', { current: showWatched, new: !showWatched });
+            setShowWatched(!showWatched);
+          }}
           className="flex items-center gap-2"
         >
           {showWatched ? (
